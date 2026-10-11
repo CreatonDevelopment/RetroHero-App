@@ -165,3 +165,25 @@ jobs:
             dist/release-manifest.json
             dist/release-notes.md
           if-no-files-found: error
+
+  readme:
+    name: Refresh public download table
+    if: ${{ inputs.publish }}
+    needs: [prepare, release]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: CreatonDevelopment/RetroHero
+          token: ${{ secrets.SOURCE_READ_TOKEN }}
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          persist-credentials: false
+      - name: Update device and architecture links for the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${{ needs.prepare.outputs.version }}" --repo CreatonDevelopment/RetroHero-App --pattern release-manifest.json --dir dist
+          python3 scripts/ci/release.py readme --manifest dist/release-manifest.json

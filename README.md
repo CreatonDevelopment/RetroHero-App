@@ -1,40 +1,55 @@
-# RetroHero App
+# RetroHero
 
-[Download releases](https://github.com/CreatonDevelopment/RetroHero-App/releases).
-[Source code](https://github.com/CreatonDevelopment/RetroHero).
+Download the build that matches your **device**, **firmware**, and **architecture**. The table updates automatically after every published release.
 
-To build and publish, open [Actions > Release handhelds](https://github.com/CreatonDevelopment/RetroHero-App/actions/workflows/release.yml),
-select **Run workflow**, then choose **patch**, **minor**, or **major**.
-Disable **Publish the completed release** to verify builds without publishing.
+## Download
 
-| Device | Firmware | Architectures |
+<!-- downloads:start -->
+[Latest release](https://github.com/CreatonDevelopment/RetroHero-App/releases/latest)
+<!-- downloads:end -->
+
+### Choose your architecture
+
+Use **ARM64** on a 64-bit kernel. Use **ARMv7** on a 32-bit kernel; ARMv7 also works on 64-bit kernels that support 32-bit ARM applications.
+
+If you have terminal or SSH access, run `uname -m`:
+
+| Result | Download |
+|---|---|
+| `aarch64` | ARM64 |
+| `armv7l` or `armv8l` | ARMv7 |
+
+A 32-bit userspace on a 64-bit kernel can still run the ARM64 build. Check the firmware you actually installed: Stock OS, NextUI, and NX Redux have separate packages.
+
+## Install
+
+1. Download the ZIP from the matching row and architecture column above.
+2. Extract it at the **SD card root**, preserving the folders in the archive.
+3. Open RetroHero from your firmware's menu:
+
+| Firmware | Installed folder | Open from |
 |---|---|---|
-| Anbernic RG40XXV | muOS | ARM64, ARMv7 |
-| TrimUI Brick / Brick Pro / Brick Hammer | Stock, NextUI, NX Redux | ARM64, ARMv7 |
+| muOS | `application/RetroHero Slint/` | Applications > RetroHero Slint |
+| Stock OS | `Apps/RetroHero/` | Apps > RetroHero |
+| NextUI | `Tools/tg5040/RetroHero.pak/` | Tools > RetroHero |
+| NX Redux | `Tools/tg5040/RetroHero.pak/` | Tools > RetroHero |
 
-Extract the matching ZIP at the SD card root. Packages include the appropriate
-Apps/Tools/application layout and device launcher. Each release contains checksums
-and a manifest linking every binary to its source commit. Preserve existing app
-data, download caches, ROMs, and saves when updating.
+For a manual update, exit RetroHero, then extract the new matching ZIP over the existing installation. Keep your app data, download caches, ROMs, and saves.
 
-The app automatically checks for stable updates and offers **Update**, **Skip
-for now**, or **Skip this version** in an animated dialog. Check manually or
-disable automatic checks in **Settings > System**. Updates verify the matching
-device/firmware/architecture package and its checksums, then restart through
-the launcher. User data is preserved and previous app files are backed up.
+## Updates
 
-ARMv7 requires firmware kernel support for 32-bit ARM applications. ARM64 is
-preferred on 64-bit kernels; the statically linked musl binaries also work with
-32-bit userspace on those kernels. Hardware validation currently covers
-RG40XXV/muOS and Brick Hammer/NX Redux ARM64. New combinations await hardware
-validation.
+RetroHero automatically checks for stable updates and shows an animated dialog with **Update**, **Skip for now**, and **Skip this version**. Skipped versions stay skipped across restarts.
 
-Builds are manual only. Four parallel, cached backend/architecture builds create
-20 device/firmware ZIPs, reusing identical binaries. ARM64 uses native GitHub
-ARM64 runners; ARMv7 is cross-compiled with QEMU used only for smoke tests.
-Tests, executable/update smoke checks,
-ELF/static-link checks, package completeness, and checksums gate publication.
+Use **Settings > System** to check manually or disable automatic checks. A manual check includes versions you previously skipped. The updater selects your device, firmware, and architecture, verifies the download, preserves user data, backs up the previous app files, and restarts through the launcher.
 
-[Build and release documentation](https://github.com/CreatonDevelopment/RetroHero/blob/main/docs/releases.md).
-The canonical workflow is maintained in the source repository at
-`.github/release/release.yml`; this repository hosts the active workflow and releases.
+## Compatibility
+
+Hardware validation currently covers **Anbernic RG40XXV / muOS / ARM64** and **TrimUI Brick Hammer / NX Redux / ARM64**. The other combinations are packaged and tested in CI; physical device validation is still pending.
+
+## Build and release
+
+Maintainers can open [Actions > Release handhelds](https://github.com/CreatonDevelopment/RetroHero-App/actions/workflows/release.yml), select **Run workflow**, and choose **patch**, **minor**, or **major**. Disable **Publish the completed release** to verify builds without publishing.
+
+Four parallel, cached backend and architecture builds produce the 20 device and firmware packages. ARM64 builds run on native ARM64 runners; ARMv7 builds use a cross-compiler, with QEMU used for smoke tests. Tests, update checks, package validation, and checksums gate publication. After publication, CI refreshes the download table above from the release manifest.
+
+The [source repository](https://github.com/CreatonDevelopment/RetroHero) is private. This public repository hosts the release workflow and downloadable builds.
