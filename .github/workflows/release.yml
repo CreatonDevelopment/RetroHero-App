@@ -161,9 +161,9 @@ jobs:
         with:
           name: release-metadata
           path: |
-            dist/SHA256SUMS
-            dist/release-manifest.json
-            dist/release-notes.md
+            dist/installers/SHA256SUMS
+            dist/installers/release-manifest.json
+            dist/installers/release-notes.md
           if-no-files-found: error
 
   readme:
