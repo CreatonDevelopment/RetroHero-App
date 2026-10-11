@@ -76,7 +76,7 @@ jobs:
   build:
     needs: prepare
     name: Build ${{ matrix.backend }} / ${{ matrix.arch }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -110,15 +110,18 @@ jobs:
         run: python3 scripts/ci/release.py stamp --version "${{ needs.prepare.outputs.version }}"
       - name: Build optimized static firmware binary
         run: bash scripts/ci/build.sh "${{ matrix.backend }}" "${{ matrix.target }}" "${{ matrix.zig_target }}" "${{ matrix.cpu }}"
-      - name: Smoke-test the target executable under ARM emulation
+      - name: Smoke-test the target executable (native ARM64; emulated ARMv7)
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install --no-install-recommends -y qemu-user
-          if [ '${{ matrix.arch }}' = aarch64 ]; then emulator=qemu-aarch64; else emulator=qemu-arm; fi
-          "$emulator" "target/${{ matrix.target }}/release/retrohero" --list-devices
+          if [ '${{ matrix.arch }}' = aarch64 ]; then
+            "target/${{ matrix.target }}/release/retrohero" --list-devices
+          else
+            sudo apt-get update -qq
+            sudo apt-get install --no-install-recommends -y qemu-user
+            qemu-arm "target/${{ matrix.target }}/release/retrohero" --list-devices
+          fi
       - name: Package every matching device and firmware
         run: python3 scripts/ci/release.py package --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --version "${{ needs.prepare.outputs.version }}" --sha "${{ needs.prepare.outputs.source_sha }}"
-      - name: Verify application replacement and restart under QEMU
+      - name: Verify application replacement and restart
         run: python3 scripts/ci/smoke-update.py --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

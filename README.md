@@ -30,7 +30,9 @@ RG40XXV/muOS and Brick Hammer/NX Redux ARM64. New combinations await hardware
 validation.
 
 Builds are manual only. Four parallel, cached backend/architecture builds create
-20 device/firmware ZIPs, reusing identical binaries. Tests, QEMU smoke checks,
+20 device/firmware ZIPs, reusing identical binaries. ARM64 uses native GitHub
+ARM64 runners; ARMv7 is cross-compiled with QEMU used only for smoke tests.
+Tests, executable/update smoke checks,
 ELF/static-link checks, package completeness, and checksums gate publication.
 
 [Build and release documentation](https://github.com/CreatonDevelopment/RetroHero/blob/main/docs/releases.md).
