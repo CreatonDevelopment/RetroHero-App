@@ -17,6 +17,12 @@ Apps/Tools/application layout and device launcher. Each release contains checksu
 and a manifest linking every binary to its source commit. Preserve existing app
 data, download caches, ROMs, and saves when updating.
 
+The app automatically checks for stable updates and offers **Update**, **Skip
+for now**, or **Skip this version** in an animated dialog. Check manually or
+disable automatic checks in **Settings > System**. Updates verify the matching
+device/firmware/architecture package and its checksums, then restart through
+the launcher. User data is preserved and previous app files are backed up.
+
 ARMv7 requires firmware kernel support for 32-bit ARM applications. ARM64 is
 preferred on 64-bit kernels; the statically linked musl binaries also work with
 32-bit userspace on those kernels. Hardware validation currently covers

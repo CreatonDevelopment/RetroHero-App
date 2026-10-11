@@ -118,6 +118,8 @@ jobs:
           "$emulator" "target/${{ matrix.target }}/release/retrohero" --list-devices
       - name: Package every matching device and firmware
         run: python3 scripts/ci/release.py package --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --version "${{ needs.prepare.outputs.version }}" --sha "${{ needs.prepare.outputs.source_sha }}"
+      - name: Verify application replacement and restart under QEMU
+        run: python3 scripts/ci/smoke-update.py --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages-${{ matrix.backend }}-${{ matrix.arch }}
