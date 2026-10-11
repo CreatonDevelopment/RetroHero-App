@@ -67,4 +67,4 @@ Maintainers can open [Actions > Release handhelds](https://github.com/CreatonDev
 
 Four parallel, cached backend and architecture builds produce the 20 device and firmware packages. ARM64 builds run on native ARM64 runners; ARMv7 builds use a cross-compiler, with QEMU used for smoke tests. Tests, update checks, package validation, and checksums gate publication. After publication, CI refreshes the download table above from the release manifest.
 
-The [source repository](https://github.com/CreatonDevelopment/RetroHero) is private. This public repository hosts the release workflow and downloadable builds.
+This repository hosts the release workflow and downloadable builds.
