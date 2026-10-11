@@ -5,22 +5,22 @@ Download the build that matches your **device**, **firmware**, and **architectur
 ## Download
 
 <!-- downloads:start -->
-Latest build: **[v0.1.1](https://github.com/CreatonDevelopment/RetroHero-App/releases/tag/v0.1.1)**.
+Latest build: **[v0.1.2](https://github.com/CreatonDevelopment/RetroHero-App/releases/tag/v0.1.2)**.
 
-| Device | Firmware | ARM64 (64-bit) | ARMv7 (32-bit) |
-|---|---|---|---|
-| Anbernic RG40XXV | muOS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-anbernic-rg40xxv-muos-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-anbernic-rg40xxv-muos-armv7.zip) |
-| TrimUI Brick | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-trimui-stock-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-trimui-stock-armv7.zip) |
-| TrimUI Brick | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-nextui-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-nextui-armv7.zip) |
-| TrimUI Brick | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-nxredux-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-nxredux-armv7.zip) |
-| TrimUI Brick Pro | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-pro-trimui-stock-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-pro-trimui-stock-armv7.zip) |
-| TrimUI Brick Pro | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-pro-nextui-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-pro-nextui-armv7.zip) |
-| TrimUI Brick Pro | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-pro-nxredux-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-pro-nxredux-armv7.zip) |
-| TrimUI Brick Hammer | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-hammer-trimui-stock-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-hammer-trimui-stock-armv7.zip) |
-| TrimUI Brick Hammer | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-hammer-nextui-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-hammer-nextui-armv7.zip) |
-| TrimUI Brick Hammer | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-hammer-nxredux-aarch64.zip) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/retrohero-0.1.1-trimui-brick-hammer-nxredux-armv7.zip) |
+| Device | Firmware | Download |
+|---|---|---|
+| Anbernic RG40XXV | muOS | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-anbernic-rg40xxv-muos.muxzip) |
+| TrimUI Brick | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-trimui-stock.zip) |
+| TrimUI Brick | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-nextui.zip) |
+| TrimUI Brick | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-nxredux.zip) |
+| TrimUI Brick Pro | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-pro-trimui-stock.zip) |
+| TrimUI Brick Pro | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-pro-nextui.zip) |
+| TrimUI Brick Pro | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-pro-nxredux.zip) |
+| TrimUI Brick Hammer | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-hammer-trimui-stock.zip) |
+| TrimUI Brick Hammer | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-hammer-nextui.zip) |
+| TrimUI Brick Hammer | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/retrohero-0.1.2-trimui-brick-hammer-nxredux.zip) |
 
-[SHA-256 checksums](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/SHA256SUMS) · [Release manifest](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.1/release-manifest.json)
+[SHA-256 checksums](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/SHA256SUMS) · [Release manifest](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.1.2/release-manifest.json)
 <!-- downloads:end -->
 
 ### Choose your architecture
