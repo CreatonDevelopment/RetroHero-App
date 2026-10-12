@@ -5,40 +5,40 @@ Download the package for your **device** and **firmware**. Each package automati
 ## Download
 
 <!-- downloads:start -->
-Latest build: **[v0.6.2](https://github.com/CreatonDevelopment/RetroHero-App/releases/tag/v0.6.2)**.
+Latest build: **[v0.6.3](https://github.com/CreatonDevelopment/RetroHero-App/releases/tag/v0.6.3)**.
 
 | Device | Firmware | Download |
 |---|---|---|
-| Anbernic RG40XXV | muOS | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg40xxv-muos.muxzip) |
-| TrimUI Brick | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-trimui-stock-aarch64.zip) |
-| TrimUI Brick | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-nextui-aarch64.zip) |
-| TrimUI Brick | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-nxredux.zip) |
-| TrimUI Brick Pro | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-pro-trimui-stock-aarch64.zip) |
-| TrimUI Brick Pro | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-pro-nxredux.zip) |
-| TrimUI Brick Hammer | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-hammer-trimui-stock-aarch64.zip) |
-| TrimUI Brick Hammer | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-hammer-nextui-aarch64.zip) |
-| TrimUI Brick Hammer | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-hammer-nxredux.zip) |
-| Anbernic RG28XX | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg28xx-muos.muxzip) |
-| Anbernic RG34XX | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg34xx-muos.muxzip) |
-| Anbernic RG34XX SP | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg34xx-sp-muos.muxzip) |
-| Anbernic RG35XX 2024 | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg35xx-2024-muos.muxzip) |
-| Anbernic RG35XX H | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg35xx-h-muos.muxzip) |
-| Anbernic RG35XX Plus | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg35xx-plus-muos.muxzip) |
-| Anbernic RG35XX Pro | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg35xx-pro-muos.muxzip) |
-| Anbernic RG35XX SP | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg35xx-sp-muos.muxzip) |
-| Anbernic RG40XX H | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rg40xxh-muos.muxzip) |
-| Anbernic RG CubeXX | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-anbernic-rgcubexx-muos.muxzip) |
-| TrimUI Brick | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-brick-muos.muxzip) |
-| TrimUI Smart Pro | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-smart-pro-muos.muxzip) |
-| TrimUI Smart Pro | Stock OS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-smart-pro-trimui-stock-aarch64.zip) |
-| TrimUI Smart Pro | CrossMix (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-smart-pro-crossmix-aarch64.zip) |
-| Miyoo Mini | Onion (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-miyoo-mini-onion-armv7.zip) |
-| Miyoo Mini Plus | Onion (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-miyoo-mini-plus-onion-armv7.zip) |
-| Miyoo A30 | spruceOS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-miyoo-a30-spruce-armv7.zip) |
-| Miyoo Flip | spruceOS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-miyoo-flip-spruce-aarch64.zip) |
-| TRIMUI Smart Pro S | Stock OS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/retrohero-0.6.2-trimui-smart-pro-s-trimui-stock-aarch64.zip) |
+| Anbernic RG40XXV | muOS | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg40xxv-muos.muxzip) |
+| TrimUI Brick | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-trimui-stock-aarch64.zip) |
+| TrimUI Brick | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-nextui-aarch64.zip) |
+| TrimUI Brick | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-nxredux.zip) |
+| TrimUI Brick Pro | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-pro-trimui-stock-aarch64.zip) |
+| TrimUI Brick Pro | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-pro-nxredux.zip) |
+| TrimUI Brick Hammer | Stock OS | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-hammer-trimui-stock-aarch64.zip) |
+| TrimUI Brick Hammer | NextUI | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-hammer-nextui-aarch64.zip) |
+| TrimUI Brick Hammer | NX Redux | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-hammer-nxredux.zip) |
+| Anbernic RG28XX | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg28xx-muos.muxzip) |
+| Anbernic RG34XX | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg34xx-muos.muxzip) |
+| Anbernic RG34XX SP | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg34xx-sp-muos.muxzip) |
+| Anbernic RG35XX 2024 | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg35xx-2024-muos.muxzip) |
+| Anbernic RG35XX H | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg35xx-h-muos.muxzip) |
+| Anbernic RG35XX Plus | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg35xx-plus-muos.muxzip) |
+| Anbernic RG35XX Pro | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg35xx-pro-muos.muxzip) |
+| Anbernic RG35XX SP | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg35xx-sp-muos.muxzip) |
+| Anbernic RG40XX H | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rg40xxh-muos.muxzip) |
+| Anbernic RG CubeXX | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-anbernic-rgcubexx-muos.muxzip) |
+| TrimUI Brick | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-brick-muos.muxzip) |
+| TrimUI Smart Pro | muOS (experimental) | [Install package](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-smart-pro-muos.muxzip) |
+| TrimUI Smart Pro | Stock OS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-smart-pro-trimui-stock-aarch64.zip) |
+| TrimUI Smart Pro | CrossMix (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-smart-pro-crossmix-aarch64.zip) |
+| Miyoo Mini | Onion (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-miyoo-mini-onion-armv7.zip) |
+| Miyoo Mini Plus | Onion (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-miyoo-mini-plus-onion-armv7.zip) |
+| Miyoo A30 | spruceOS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-miyoo-a30-spruce-armv7.zip) |
+| Miyoo Flip | spruceOS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-miyoo-flip-spruce-aarch64.zip) |
+| TRIMUI Smart Pro S | Stock OS (experimental) | [Download ZIP](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/retrohero-0.6.3-trimui-smart-pro-s-trimui-stock-aarch64.zip) |
 
-[SHA-256 checksums](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/SHA256SUMS) · [Release manifest](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.2/release-manifest.json)
+[SHA-256 checksums](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/SHA256SUMS) · [Release manifest](https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.6.3/release-manifest.json)
 <!-- downloads:end -->
 
 ## Install
