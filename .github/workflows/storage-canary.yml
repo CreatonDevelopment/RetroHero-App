@@ -1,0 +1,22 @@
+---
+name: Public artifact storage canary
+'on':
+  workflow_dispatch: {}
+permissions: {}
+jobs:
+  canary:
+    if: "${{ github.repository == 'CreatonDevelopment/RetroHero-App' && github.ref
+      == 'refs/heads/main' }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+    - name: Write synthetic non-source probe
+      run: |
+        mkdir -p probe
+        printf '%s\n' '{"public_artifact_probe":true}' > probe/storage-probe.json
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: public-storage-probe
+        path: probe/storage-probe.json
+        retention-days: 1
+        if-no-files-found: error
