@@ -1,189 +1,480 @@
-# Canonical copy. Install as .github/workflows/release.yml in RetroHero-App.
-name: Release handhelds
-run-name: "${{ inputs.publish && 'Release' || 'Verify' }} (${{ inputs.bump }})"
-
-on:
-  workflow_dispatch:
-    inputs:
-      bump:
-        description: Version increment
-        type: choice
-        required: true
-        default: patch
-        options: [patch, minor, major]
-      publish:
-        description: Publish the completed release (disable for build verification)
-        type: boolean
-        required: true
-        default: true
-
+---
+name: Release handhelds (protected private source)
+run-name: "${{ github.event.client_payload.publish && 'Release' || 'Verify' }} v${{ github.event.client_payload.version }} @${{ github.event.client_payload.source_sha }} (source ${{ github.event.client_payload.source_run_id }}.${{ github.event.client_payload.source_run_attempt }})"
 permissions:
   contents: read
-
 concurrency:
   group: handheld-release
   cancel-in-progress: false
-
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: '0'
-  RUST_TOOLCHAIN: '1.94.1'
-
+  RUST_TOOLCHAIN: 1.94.1
+  RETROHERO_CANDIDATE_MIYOO: '0'
+  RETROHERO_RELEASE_MIYOO: '1'
+  RETROHERO_RELEASE_FAMILIES: '1'
+  RETROHERO_RELEASE_TG5050: '1'
+  APPROVED_SOURCE_SHA: 7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7
 jobs:
   prepare:
+    if: "${{ github.repository == 'CreatonDevelopment/RetroHero-App' && github.ref == 'refs/heads/main' && github.event_name == 'repository_dispatch' && github.event.action == 'retrohero_release' && github.event.sender.id == 42785824 && github.event.client_payload.source_repository == 'CreatonDevelopment/RetroHero' && github.event.client_payload.source_sha == '7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7' && github.event.client_payload.version == '0.8.1' }}"
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
-      version: ${{ steps.plan.outputs.version }}
-      source_sha: ${{ steps.plan.outputs.source_sha }}
-      matrix: ${{ steps.plan.outputs.matrix }}
+      version: "${{ steps.plan.outputs.version }}"
+      source_sha: "${{ steps.plan.outputs.source_sha }}"
+      matrix: "${{ steps.plan.outputs.matrix }}"
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: CreatonDevelopment/RetroHero
-          token: ${{ secrets.SOURCE_READ_TOKEN }}
-          ref: main
-          persist-credentials: false
-      - name: Resolve source revision, version, and unique build targets
-        id: plan
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/ci/release.py plan --bump "${{ inputs.bump }}"
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - name: Resolve source revision, version, and unique build targets
+      id: plan
+      env:
+        GH_TOKEN: "${{ github.token }}"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        python3 scripts/ci/release.py plan --bump "${{ 'patch' }}"
+        PRIVATE_COMMAND
+    - name: Verify exact v0.8.1 plan and unchanged six-build matrix
+      env:
+        PLANNED_SHA: "${{ steps.plan.outputs.source_sha }}"
+        PLANNED_VERSION: "${{ steps.plan.outputs.version }}"
+        PLANNED_MATRIX: "${{ steps.plan.outputs.matrix }}"
+      run: |
+        python3 - <<'PY'
+        import os,json
+        expected={"trimui-aarch64","muos-aarch64","miyoo-onion-armv7","miyoo-spruce-a30-armv7","miyoo-spruce-flip-aarch64","tg5050-stock-aarch64"}
+        assert os.environ['PLANNED_SHA']==os.environ['APPROVED_SOURCE_SHA']
+        assert os.environ['PLANNED_VERSION']=='0.8.1'
+        matrix=json.loads(os.environ['PLANNED_MATRIX'])['include']
+        assert len(matrix)==6 and {x['id'] for x in matrix}==expected
+        print('Exact source, version and six-build scope verified.')
+        PY
+    environment: release-source
+    permissions:
+      contents: write
   test:
     needs: prepare
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: CreatonDevelopment/RetroHero
-          token: ${{ secrets.SOURCE_READ_TOKEN }}
-          ref: ${{ needs.prepare.outputs.source_sha }}
-          persist-credentials: false
-      - name: Install pinned Rust toolchain
-        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
-      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
-        with:
-          shared-key: handheld-tests
-          cache-on-failure: true
-          cache-bin: false
-      - name: Test release tools and firmware adapters
-        run: |
-          python3 -m unittest discover -s scripts/ci -p 'test_*.py' -v
-          cargo test --locked --no-default-features --features trimui
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - name: Install pinned Rust toolchain
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+        PRIVATE_COMMAND
+    - name: Fetch the pinned Hammer NX updater regression fixture
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        mkdir -p .preview/update-fixture
+        base=https://github.com/CreatonDevelopment/RetroHero-App/releases/download/v0.5.0
+        curl --fail --silent --show-error --location --retry 2 --proto '=https' --proto-redir '=https' "$base/retrohero-0.5.0-trimui-brick-hammer-nxredux-aarch64.zip" -o .preview/update-fixture/update.zip
+        curl --fail --silent --show-error --location --retry 2 --proto '=https' --proto-redir '=https' "$base/release-manifest.json" -o .preview/update-fixture/manifest.json
+        echo '7f03b91512ec5ba619ea3c93608d223ccf723240d2ab4230c9f4317de7d25b94  .preview/update-fixture/update.zip' | sha256sum -c -
+        echo "RETROHERO_UPDATE_FIXTURE=$PWD/.preview/update-fixture/update.zip" >> "$GITHUB_ENV"
+        echo "RETROHERO_UPDATE_MANIFEST=$PWD/.preview/update-fixture/manifest.json" >> "$GITHUB_ENV"
+        PRIVATE_COMMAND
+    - name: Install native audio transport test runtime
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        sudo apt-get update -qq
+        sudo apt-get install --no-install-recommends -y libsdl2-2.0-0
+        PRIVATE_COMMAND
+    - name: Test release tools and firmware adapters
+      env:
+        RETROHERO_SCREENSHOT_DIR: "${{ github.workspace }}/source/.preview/ci-ui"
+        RETROHERO_THEME_SCREENSHOTS: "${{ github.workspace }}/source/.preview/ci-ui"
+        RETROHERO_RECENT_SCREENSHOTS: "${{ github.workspace }}/source/.preview/ci-ui"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        RETROHERO_RELEASE_TG5050=0 RETROHERO_RELEASE_MIYOO=0 RETROHERO_RELEASE_FAMILIES=0 RETROHERO_CANDIDATE_MIYOO=0 python3 -m unittest discover -s scripts/ci -p 'test_*.py' -v
+        RETROHERO_RELEASE_FAMILIES=0 python3 -m unittest discover -s scripts/devices -p 'test_*.py' -v
+        cargo test --locked --no-default-features --features trimui
+        CARGO_TARGET_DIR="$PWD/target" cargo test --locked --manifest-path scripts/ci/bitfield-reader/Cargo.toml
+        PRIVATE_COMMAND
+    - name: Verify opted-in session persistence on an isolated VFAT image
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        sudo apt-get update -qq
+        sudo apt-get install --no-install-recommends -y dosfstools
+        mkdir -p .tools/auth-vfat
+        truncate -s 64M .tools/auth-vfat.img
+        mkfs.vfat .tools/auth-vfat.img
+        sudo mount -o loop,uid="$(id -u)",gid="$(id -g)",umask=077 .tools/auth-vfat.img .tools/auth-vfat
+        trap 'sudo umount "$PWD/.tools/auth-vfat"' EXIT
+        RETROHERO_AUTH_TEST_ROOT="$PWD/.tools/auth-vfat" cargo test --locked --no-default-features --features trimui auth_store::tests -- --test-threads=1 --nocapture
+        PRIVATE_COMMAND
+    - name: Test the candidate Miyoo backend
+      if: "${{ false || true }}"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        cargo test --locked --no-default-features --features miyoo
+        PRIVATE_COMMAND
+    - name: Test the separate Smart Pro S backend and package
+      if: "${{ true }}"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        RETROHERO_RELEASE_TG5050=0 python3 -m unittest discover -s scripts/tg5050 -p 'test_*.py' -v
+        cargo test --locked --no-default-features --features tg5050
+        PRIVATE_COMMAND
+    environment: release-source
   build:
     needs: prepare
-    name: Build ${{ matrix.backend }} / ${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
+    name: Build ${{ matrix.id }}
+    runs-on: "${{ matrix.runner }}"
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+      matrix: "${{ fromJSON(needs.prepare.outputs.matrix) }}"
     env:
-      RUSTFLAGS: -C target-cpu=${{ matrix.cpu }}
-      ZIG_GLOBAL_CACHE_DIR: ${{ github.workspace }}/.tools/zig-cache
+      RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
+      ZIG_GLOBAL_CACHE_DIR: "${{ github.workspace }}/.tools/zig-cache"
+      RETROHERO_AUDIO_CROSS: '1'
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: CreatonDevelopment/RetroHero
-          token: ${{ secrets.SOURCE_READ_TOKEN }}
-          ref: ${{ needs.prepare.outputs.source_sha }}
-          persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with:
-          python-version: '3.13'
-          cache: pip
-          cache-dependency-path: scripts/ci/requirements.txt
-      - name: Install pinned compiler tools
-        run: |
-          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --target "${{ matrix.target }}"
-          python3 -m pip install --disable-pip-version-check -r scripts/ci/requirements.txt
-      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
-        with:
-          shared-key: release-${{ matrix.backend }}-${{ matrix.target }}-zig-0.16.0
-          cache-on-failure: true
-          cache-bin: false
-          cache-directories: .tools/zig-cache
-      - name: Stamp release version in the temporary source checkout
-        run: python3 scripts/ci/release.py stamp --version "${{ needs.prepare.outputs.version }}"
-      - name: Build optimized static firmware binary
-        run: bash scripts/ci/build.sh "${{ matrix.backend }}" "${{ matrix.target }}" "${{ matrix.zig_target }}" "${{ matrix.cpu }}"
-      - name: Smoke-test the target executable (native ARM64; emulated ARMv7)
-        run: |
-          if [ '${{ matrix.arch }}' = aarch64 ]; then
-            "target/${{ matrix.target }}/release/retrohero" --list-devices
-          else
-            sudo apt-get update -qq
-            sudo apt-get install --no-install-recommends -y qemu-user
-            qemu-arm "target/${{ matrix.target }}/release/retrohero" --list-devices
-          fi
-      - name: Package every matching device and firmware
-        run: python3 scripts/ci/release.py package --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --version "${{ needs.prepare.outputs.version }}" --sha "${{ needs.prepare.outputs.source_sha }}"
-      - name: Verify application replacement and restart
-        run: python3 scripts/ci/smoke-update.py --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: packages-${{ matrix.backend }}-${{ matrix.arch }}
-          path: dist/*.zip
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.13'
+    - name: Install pinned compiler tools
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        if [ '${{ matrix.runtime }}' = glibc ]; then
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y patchelf=0.18.0-1.1build1
+          patchelf --version
+        fi
+        rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --target "${{ matrix.target }}"
+        python3 -m pip install --disable-pip-version-check -r scripts/ci/requirements.txt
+        PRIVATE_COMMAND
+    - name: Stamp release version in the temporary source checkout
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        python3 scripts/ci/release.py stamp --version "${{ needs.prepare.outputs.version }}"
+        PRIVATE_COMMAND
+    - name: Build optimized firmware binary
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        bash scripts/ci/build.sh "${{ matrix.backend }}" "${{ matrix.target }}" "${{ matrix.zig_target }}" "${{ matrix.cpu }}" "${{ matrix.runtime }}" "${{ matrix.interpreter }}"
+        PRIVATE_COMMAND
+    - name: Smoke-test the target executable (native ARM64; emulated ARMv7)
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        if [ '${{ matrix.runtime }}' = glibc ]; then
+          sudo apt-get update -qq
+          if [ '${{ matrix.arch }}' = armv7 ]; then
+            sudo apt-get install --no-install-recommends -y qemu-user libc6-armhf-cross libgcc-s1-armhf-cross
+            sysroot=/usr/arm-linux-gnueabihf
+            emulator=qemu-arm
+            loader=ld-linux-armhf.so.3
+          else
+            sudo apt-get install --no-install-recommends -y qemu-user libc6-arm64-cross libgcc-s1-arm64-cross
+            sysroot=/usr/aarch64-linux-gnu
+            emulator=qemu-aarch64
+            loader=ld-linux-aarch64.so.1
+          fi
+          prefix="$PWD/.tools/qemu-runtime"
+          interpreter='${{ matrix.interpreter }}'
+          mkdir -p "$prefix$(dirname "$interpreter")"
+          ln -s "$sysroot/lib/$loader" "$prefix$interpreter"
+          echo "RETROHERO_QEMU_SYSROOT=$prefix" >> "$GITHUB_ENV"
+          echo "RETROHERO_QEMU_LIBRARY_PATH=$sysroot/lib" >> "$GITHUB_ENV"
+          "$emulator" -L "$prefix" -E "LD_LIBRARY_PATH=$sysroot/lib" "target/${{ matrix.target }}/release/retrohero" --list-devices
+        elif [ '${{ matrix.arch }}' = aarch64 ]; then
+          "target/${{ matrix.target }}/release/retrohero" --list-devices
+        else
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y qemu-user
+          qemu-arm "target/${{ matrix.target }}/release/retrohero" --list-devices
+        fi
+        PRIVATE_COMMAND
+    - name: Package every matching device and firmware
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        python3 scripts/ci/release.py package --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --build-id "${{ matrix.id }}" --version "${{ needs.prepare.outputs.version }}" --sha "${{ needs.prepare.outputs.source_sha }}"
+        PRIVATE_COMMAND
+    - name: Verify application replacement and restart
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        for package in dist/*.zip; do
+          python3 scripts/ci/smoke-update.py --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --package "$package"
+        done
+        PRIVATE_COMMAND
+    - name: Verify Hammer NX staging and replacement on an isolated VFAT image
+      if: "${{ matrix.id == 'trimui-aarch64' }}"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        sudo apt-get update -qq
+        sudo apt-get install --no-install-recommends -y dosfstools
+        image="$PWD/.tools/update-vfat.img"
+        mountpoint="$PWD/.tools/update-vfat"
+        mkdir -p "$mountpoint"
+        truncate -s 256M "$image"
+        mkfs.vfat -F 32 "$image"
+        sudo mount -t vfat -o "loop,uid=$(id -u),gid=$(id -g),umask=000" "$image" "$mountpoint"
+        trap 'sudo umount "$mountpoint"' EXIT
+        RETROHERO_UPDATE_TEST_ROOT="$mountpoint" python3 scripts/ci/smoke-update.py --backend trimui --arch aarch64 --package "dist/retrohero-${{ needs.prepare.outputs.version }}-trimui-brick-hammer-nxredux-aarch64.zip"
+        PRIVATE_COMMAND
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: packages-${{ matrix.id }}
+        path: source/dist/*.zip
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 1
+    environment: release-source
+  miyoo-runtime:
+    if: "${{ false || true }}"
+    needs:
+    - prepare
+    - build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
+
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.13'
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+      with:
+        pattern: packages-miyoo-*
+        path: source/miyoo-packages
+        merge-multiple: true
+    - run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        sudo apt-get update -qq
+        sudo apt-get install --no-install-recommends -y p7zip-full squashfs-tools qemu-user
+        python3 -m pip install --disable-pip-version-check ziglang==0.16.0
+        python3 scripts/ci/qualify-miyoo.py --packages miyoo-packages
+        PRIVATE_COMMAND
+    environment: release-source
+  tg5050-runtime:
+    if: "${{ true }}"
+    needs:
+    - prepare
+    - build
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    steps:
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
+
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.13'
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+      with:
+        pattern: packages-tg5050-*
+        path: source/tg5050-packages
+        merge-multiple: true
+    - name: Check pinned TG5050 native runtime and the shipped app
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        sudo apt-get update -qq
+        sudo apt-get install --no-install-recommends -y p7zip-full qemu-user
+        python3 -m pip install --disable-pip-version-check ziglang==0.16.0
+        curl --fail --silent --show-error --location --retry 2 --proto '=https' --proto-redir '=https' 'https://github.com/trimui/firmware_smartpro_s/releases/download/v1.0.1/trimui_tg5050_20251218_v1.0.1.7z' -o tg5050-firmware.7z
+        zig="$(python3 -c 'import pathlib, ziglang; print(pathlib.Path(ziglang.__file__).parent / "zig")')"
+        for package in tg5050-packages/*.zip; do
+          python3 scripts/tg5050/qualify.py --archive tg5050-firmware.7z --report .preview/tg5050/runtime.json --zig "$zig" --package "$package"
+        done
+        PRIVATE_COMMAND
+    environment: release-source
   release:
-    needs: [prepare, test, build]
+    needs:
+    - prepare
+    - test
+    - build
+    - miyoo-runtime
+    - tg5050-runtime
+    if: "${{ always() && needs.prepare.result == 'success' && needs.test.result == 'success' && needs.build.result == 'success' && (needs.miyoo-runtime.result == 'success' || (!(false || true) && needs.miyoo-runtime.result == 'skipped')) && (needs.tg5050-runtime.result == 'success' || (!true && needs.tg5050-runtime.result == 'skipped')) }}"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    steps:
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
+
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+      with:
+        pattern: packages-*
+        path: source/dist
+        merge-multiple: true
+    - name: Verify the complete package set and publish atomically
+      env:
+        GH_TOKEN: "${{ github.token }}"
+        PUBLISH: "${{ github.event.client_payload.publish }}"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        args=()
+        if [ "$PUBLISH" = true ]; then args+=(--release); fi
+        python3 scripts/ci/release.py publish --version "${{ needs.prepare.outputs.version }}" --sha "${{ needs.prepare.outputs.source_sha }}" "${args[@]}"
+        PRIVATE_COMMAND
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: release-metadata
+        path: |-
+          source/dist/installers/SHA256SUMS
+          source/dist/installers/release-manifest.json
+          source/dist/installers/release-notes.md
+        if-no-files-found: error
+        retention-days: 1
+    environment: release-source
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: CreatonDevelopment/RetroHero
-          token: ${{ secrets.SOURCE_READ_TOKEN }}
-          ref: ${{ needs.prepare.outputs.source_sha }}
-          persist-credentials: false
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: packages-*
-          path: dist
-          merge-multiple: true
-      - name: Verify the complete package set and publish atomically
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PUBLISH: ${{ inputs.publish }}
-        run: |
-          args=()
-          if [ "$PUBLISH" = true ]; then args+=(--release); fi
-          python3 scripts/ci/release.py publish --version "${{ needs.prepare.outputs.version }}" --sha "${{ needs.prepare.outputs.source_sha }}" "${args[@]}"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-metadata
-          path: |
-            dist/installers/SHA256SUMS
-            dist/installers/release-manifest.json
-            dist/installers/release-notes.md
-          if-no-files-found: error
-
   readme:
     name: Refresh public download table
-    if: ${{ inputs.publish }}
-    needs: [prepare, release]
+    if: "${{ always() && github.event.client_payload.publish && needs.prepare.result == 'success' && needs.release.result == 'success' }}"
+    needs:
+    - prepare
+    - release
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    steps:
+    - name: Checkout reviewed public orchestration
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        repository: CreatonDevelopment/RetroHero-App
+        ref: "${{ github.sha }}"
+        path: orchestrator
+        persist-credentials: false
+    - name: Validate trusted private dispatch before source access
+      working-directory: "${{ github.workspace }}"
+      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
+
+        '
+    - name: Checkout owner-reviewed private source without public diagnostics
+      working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
+      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+
+        '
+    - name: Update device and firmware links for the published release
+      env:
+        GH_TOKEN: "${{ github.token }}"
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
+        gh release download "v${{ needs.prepare.outputs.version }}" --repo CreatonDevelopment/RetroHero-App --pattern release-manifest.json --dir dist
+        python3 scripts/ci/release.py readme --manifest dist/release-manifest.json
+        PRIVATE_COMMAND
+    environment: release-source
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: CreatonDevelopment/RetroHero
-          token: ${{ secrets.SOURCE_READ_TOKEN }}
-          ref: ${{ needs.prepare.outputs.source_sha }}
-          persist-credentials: false
-      - name: Update device and architecture links for the published release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download "v${{ needs.prepare.outputs.version }}" --repo CreatonDevelopment/RetroHero-App --pattern release-manifest.json --dir dist
-          python3 scripts/ci/release.py readme --manifest dist/release-manifest.json
+'on':
+  repository_dispatch:
+    types:
+    - retrohero_release
+defaults:
+  run:
+    shell: bash
+    working-directory: "${{ github.workspace }}/source"
