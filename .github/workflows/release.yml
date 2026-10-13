@@ -143,13 +143,11 @@ jobs:
         RETROHERO_AUTH_TEST_ROOT="$PWD/.tools/auth-vfat" cargo test --locked --no-default-features --features trimui auth_store::tests -- --test-threads=1 --nocapture
         PRIVATE_COMMAND
     - name: Test the candidate Miyoo backend
-      if: "${{ false || true }}"
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
         cargo test --locked --no-default-features --features miyoo
         PRIVATE_COMMAND
     - name: Test the separate Smart Pro S backend and package
-      if: "${{ true }}"
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
         RETROHERO_RELEASE_TG5050=0 python3 -m unittest discover -s scripts/tg5050 -p 'test_*.py' -v
@@ -280,7 +278,6 @@ jobs:
         retention-days: 1
     environment: release-source
   miyoo-runtime:
-    if: "${{ false || true }}"
     needs:
     - prepare
     - build
@@ -324,7 +321,6 @@ jobs:
         PRIVATE_COMMAND
     environment: release-source
   tg5050-runtime:
-    if: "${{ true }}"
     needs:
     - prepare
     - build
@@ -477,4 +473,4 @@ jobs:
 defaults:
   run:
     shell: bash
-    working-directory: "${{ github.workspace }}/source"
+    working-directory: source
