@@ -20,10 +20,10 @@ ASKPASS
 chmod 700 "$askpass"
 if ! (
   export GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0
-  git init --quiet "$GITHUB_WORKSPACE/source"
-  git -C "$GITHUB_WORKSPACE/source" remote add origin https://github.com/CreatonDevelopment/RetroHero.git
-  git -C "$GITHUB_WORKSPACE/source" fetch --quiet --no-tags --depth=1 origin "$SOURCE_SHA"
-  git -C "$GITHUB_WORKSPACE/source" checkout --quiet --detach FETCH_HEAD
+  git init --quiet "$GITHUB_WORKSPACE/source" &&
+  git -C "$GITHUB_WORKSPACE/source" remote add origin https://github.com/CreatonDevelopment/RetroHero.git &&
+  git -C "$GITHUB_WORKSPACE/source" fetch --quiet --no-tags --depth=1 origin "$SOURCE_SHA" &&
+  git -C "$GITHUB_WORKSPACE/source" checkout --quiet --detach FETCH_HEAD &&
   [[ "$(git -C "$GITHUB_WORKSPACE/source" rev-parse HEAD)" == "$APPROVED_SOURCE_SHA" ]]
 ) > "$log" 2>&1; then
   echo '::error::Private source checkout failed; diagnostics remain runner-local.'
