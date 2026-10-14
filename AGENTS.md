@@ -1,0 +1,13 @@
+# Release CI
+
+- This public repository runs builds, tests, runtime qualification, package validation, and publication. The private source repository supplies reviewed application source and its manual dispatcher. Keep application source private and keep the private repository's workflow limited to dispatching.
+- Preserve both `workflow_dispatch` here and trusted `retrohero_release` repository dispatch from the source repository. Keep sender, approved SHA/version, branch, and build-matrix checks; do not accept arbitrary refs, forks, pushes, or pull requests as release inputs.
+- Read `.github/workflows/release.yml` and `.github/scripts/` before changing CI. Synchronize approved SHA/version changes with the private dispatcher; workflow inputs alone do not approve a new release.
+- Private source lives at the runner's `source/` and public orchestration at `orchestrator/`. Run private commands through `private-run.sh`; its child process uses the source checkout as `GITHUB_WORKSPACE` because existing compiler helpers resolve paths there. Preserve the outer workflow workspace for orchestration and artifact paths.
+- Source jobs use environment `release-source`, restricted to `main`, and environment secret `PROTECTED_SOURCE_READ_TOKEN`, scoped to the private source repository's Contents:read. Do not fall back to the legacy repository secret, widen account credentials, or enable deploy keys against the source repository's policy. Do not claim required environment reviewers exist without inspecting the actual settings.
+- Keep private source, `.git`, caches, raw compiler/test diagnostics, screenshots, runtime reports, and credentials out of public logs, summaries, commits, and artifacts. Only the intended compiled packages and release metadata are public artifacts. Temporary source-auth helpers and private logs must be removed on exit.
+- Validate changes with `python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v` and `actionlint .github/workflows/release.yml`.
+- Use `publish=false` for verification. A private dispatch success means a request was accepted; verify the correlated public run through all six builds, tests, runtime checks, and package collection before reporting success. The README job is skipped in verification. Start a new request only after an active/cancelled matching run is completed.
+- Publication needs explicit user authorization and all existing release gates. Preserve draft-first publication, checksums, updater filenames/URLs, and one public install package per device/firmware. The public README must not link private source or expose architecture choices.
+
+Use small, focused Conventional Commits. Preserve unrelated local changes.
