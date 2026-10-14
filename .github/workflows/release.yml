@@ -1,6 +1,6 @@
 ---
 name: Release handhelds (protected private source)
-run-name: "${{ (github.event_name == 'workflow_dispatch' && inputs.publish || github.event.client_payload.publish) && 'Release' || 'Verify' }} v${{ inputs.version || github.event.client_payload.version }} @${{ inputs.source_sha || github.event.client_payload.source_sha }} (${{ github.event_name == 'workflow_dispatch' && 'public' || 'source' }} ${{ github.event.client_payload.source_run_id || github.run_id }}.${{ github.event.client_payload.source_run_attempt || github.run_attempt }})"
+run-name: "${{ (github.event_name == 'workflow_dispatch' && inputs.publish || github.event.client_payload.publish) && 'Release' || 'Verify' }} ${{ inputs.bump || github.event.client_payload.bump }} @${{ github.event.client_payload.source_sha || 'private-main' }} (${{ github.event_name == 'workflow_dispatch' && 'public' || 'source' }} ${{ github.event.client_payload.source_run_id || github.run_id }}.${{ github.event.client_payload.source_run_attempt || github.run_attempt }})"
 permissions:
   contents: read
 concurrency:
@@ -14,7 +14,6 @@ env:
   RETROHERO_RELEASE_MIYOO: '1'
   RETROHERO_RELEASE_FAMILIES: '1'
   RETROHERO_RELEASE_TG5050: '1'
-  APPROVED_SOURCE_SHA: 7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7
 jobs:
   prepare:
     if: "${{ github.repository == 'CreatonDevelopment/RetroHero-App' && github.ref == 'refs/heads/main' && github.event.sender.id == 42785824 && (github.event_name == 'workflow_dispatch' || (github.event_name == 'repository_dispatch' && github.event.action == 'retrohero_release')) }}"
@@ -22,7 +21,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       version: "${{ steps.plan.outputs.version }}"
-      source_sha: "${{ steps.plan.outputs.source_sha }}"
+      source_sha: "${{ steps.request.outputs.source_sha }}"
       matrix: "${{ steps.plan.outputs.matrix }}"
       publish: "${{ steps.request.outputs.publish }}"
     steps:
@@ -33,42 +32,47 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
+    - name: Validate release request and resolve the source revision
       id: request
       working-directory: "${{ github.workspace }}"
+      env:
+        SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
         '
-    - name: Checkout owner-reviewed private source without public diagnostics
+    - name: Checkout private source
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ steps.request.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ steps.request.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
-    - name: Resolve source revision, version, and unique build targets
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
+    - name: Calculate the next version and build targets
       id: plan
       env:
+        APPROVED_SOURCE_SHA: "${{ steps.request.outputs.source_sha }}"
         GH_TOKEN: "${{ github.token }}"
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
-        python3 scripts/ci/release.py plan --bump "${{ 'patch' }}"
+        python3 scripts/ci/release.py plan --bump "${{ steps.request.outputs.bump }}"
         PRIVATE_COMMAND
-    - name: Verify exact v0.8.1 plan and unchanged six-build matrix
+    - name: Verify the source, version, and six-build matrix
       env:
+        REQUESTED_SHA: "${{ steps.request.outputs.source_sha }}"
         PLANNED_SHA: "${{ steps.plan.outputs.source_sha }}"
         PLANNED_VERSION: "${{ steps.plan.outputs.version }}"
         PLANNED_MATRIX: "${{ steps.plan.outputs.matrix }}"
       run: |
         python3 - <<'PY'
-        import os,json
+        import os,json,re
         expected={"trimui-aarch64","muos-aarch64","miyoo-onion-armv7","miyoo-spruce-a30-armv7","miyoo-spruce-flip-aarch64","tg5050-stock-aarch64"}
-        assert os.environ['PLANNED_SHA']==os.environ['APPROVED_SOURCE_SHA']
-        assert os.environ['PLANNED_VERSION']=='0.8.1'
+        assert os.environ['PLANNED_SHA']==os.environ['REQUESTED_SHA']
+        assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+',os.environ['PLANNED_VERSION'])
         matrix=json.loads(os.environ['PLANNED_MATRIX'])['include']
         assert len(matrix)==6 and {x['id'] for x in matrix}==expected
-        print('Exact source, version and six-build scope verified.')
+        print('Source, automatic version and six-build scope verified.')
         PY
     environment: release-source
     permissions:
@@ -85,19 +89,15 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
-      working-directory: "${{ github.workspace }}"
-      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
-
-        '
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
     - name: Install pinned Rust toolchain
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
@@ -176,19 +176,15 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
-      working-directory: "${{ github.workspace }}"
-      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
-
-        '
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
     - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.13'
@@ -293,19 +289,15 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
-      working-directory: "${{ github.workspace }}"
-      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
-
-        '
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
     - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.13'
@@ -336,19 +328,15 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
-      working-directory: "${{ github.workspace }}"
-      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
-
-        '
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
     - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.13'
@@ -388,19 +376,15 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
-      working-directory: "${{ github.workspace }}"
-      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
-
-        '
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
     - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
       with:
         pattern: packages-*
@@ -444,19 +428,15 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate reviewed release request before source access
-      working-directory: "${{ github.workspace }}"
-      run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
-
-        '
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
+        APPROVED_SOURCE_SHA: "${{ needs.prepare.outputs.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
-      run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
-
-        '
+      run: |
+        bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
+        echo "APPROVED_SOURCE_SHA=$SOURCE_SHA" >> "$GITHUB_ENV"
     - name: Update device and firmware links for the published release
       env:
         GH_TOKEN: "${{ github.token }}"
@@ -471,16 +451,15 @@ jobs:
 'on':
   workflow_dispatch:
     inputs:
-      source_sha:
-        description: Reviewed private application SHA
-        type: string
+      bump:
+        description: Version bump
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        default: patch
         required: true
-        default: 7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7
-      version:
-        description: Approved patch version
-        type: string
-        required: true
-        default: 0.8.1
       publish:
         description: Publish after all public validation/runtime gates pass
         type: boolean
