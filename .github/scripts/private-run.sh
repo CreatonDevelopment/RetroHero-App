@@ -4,7 +4,14 @@ umask 077
 log=$(mktemp "$RUNNER_TEMP/private-step.XXXXXX")
 summary=$(mktemp "$RUNNER_TEMP/private-summary.XXXXXX")
 trap 'rm -f "$log" "$summary"' EXIT
-if ! GITHUB_STEP_SUMMARY="$summary" bash -euo pipefail > "$log" 2>&1; then
+source_root="$GITHUB_WORKSPACE/source"
+if [[ ! "$PWD" -ef "$source_root" ]]; then
+  echo '::error::Private release commands must run from the reviewed source checkout.'
+  exit 1
+fi
+# Existing source build scripts resolve compiler helpers from GITHUB_WORKSPACE.
+# Keep the public orchestration workspace outside this private command process.
+if ! GITHUB_WORKSPACE="$source_root" GITHUB_STEP_SUMMARY="$summary" bash -euo pipefail > "$log" 2>&1; then
   echo '::error::Trusted release check failed; source-bearing diagnostics were withheld.'
   exit 1
 fi
