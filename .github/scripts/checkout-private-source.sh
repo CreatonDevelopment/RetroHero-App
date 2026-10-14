@@ -5,6 +5,7 @@ if [[ "$SOURCE_SHA" != "$APPROVED_SOURCE_SHA" || ! "$SOURCE_SHA" =~ ^[0-9a-f]{40
   echo '::error::Private source access or reviewed SHA is not ready.'
   exit 1
 fi
+python3 "$(dirname "$0")/check-source-access.py"
 log=$(mktemp "$RUNNER_TEMP/private-checkout.XXXXXX")
 askpass=$(mktemp "$RUNNER_TEMP/private-askpass.XXXXXX")
 trap 'rm -f "$log" "$askpass"' EXIT
