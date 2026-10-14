@@ -68,8 +68,8 @@ Hardware validation currently covers **Anbernic RG40XXV / muOS** and **TrimUI Br
 
 ## Build and release
 
-Maintainers can open [Actions > Release handhelds](https://github.com/CreatonDevelopment/RetroHero-App/actions/workflows/release.yml), select **Run workflow**, and choose **patch**, **minor**, or **major**. Disable **Publish the completed release** to verify builds without publishing.
+Maintainers can open [Actions > Release handhelds](https://github.com/CreatonDevelopment/RetroHero-App/actions/workflows/release.yml), select **Run workflow** on `main`, and use the approved source SHA and version. Disable **Publish after all public validation/runtime gates pass** to verify builds without publishing. Releases can also be requested through the source repository's dispatcher; both entry points run this public pipeline with the same approval checks.
 
-Four parallel, cached builds produce **10 install packages**, one per device and firmware. Tests, update checks, package validation, and checksums gate publication. After publication, CI refreshes the download table above.
+Parallel firmware builds produce one install package per device and firmware. Tests, update checks, package validation, and checksums gate publication. After publication, CI refreshes the download table above.
 
 This repository hosts the release workflow and downloadable builds.

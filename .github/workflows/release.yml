@@ -1,6 +1,6 @@
 ---
 name: Release handhelds (protected private source)
-run-name: "${{ github.event.client_payload.publish && 'Release' || 'Verify' }} v${{ github.event.client_payload.version }} @${{ github.event.client_payload.source_sha }} (source ${{ github.event.client_payload.source_run_id }}.${{ github.event.client_payload.source_run_attempt }})"
+run-name: "${{ (github.event_name == 'workflow_dispatch' && inputs.publish || github.event.client_payload.publish) && 'Release' || 'Verify' }} v${{ inputs.version || github.event.client_payload.version }} @${{ inputs.source_sha || github.event.client_payload.source_sha }} (${{ github.event_name == 'workflow_dispatch' && 'public' || 'source' }} ${{ github.event.client_payload.source_run_id || github.run_id }}.${{ github.event.client_payload.source_run_attempt || github.run_attempt }})"
 permissions:
   contents: read
 concurrency:
@@ -17,13 +17,14 @@ env:
   APPROVED_SOURCE_SHA: 7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7
 jobs:
   prepare:
-    if: "${{ github.repository == 'CreatonDevelopment/RetroHero-App' && github.ref == 'refs/heads/main' && github.event_name == 'repository_dispatch' && github.event.action == 'retrohero_release' && github.event.sender.id == 42785824 && github.event.client_payload.source_repository == 'CreatonDevelopment/RetroHero' && github.event.client_payload.source_sha == '7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7' && github.event.client_payload.version == '0.8.1' }}"
+    if: "${{ github.repository == 'CreatonDevelopment/RetroHero-App' && github.ref == 'refs/heads/main' && github.event.sender.id == 42785824 && (github.event_name == 'workflow_dispatch' || (github.event_name == 'repository_dispatch' && github.event.action == 'retrohero_release')) }}"
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       version: "${{ steps.plan.outputs.version }}"
       source_sha: "${{ steps.plan.outputs.source_sha }}"
       matrix: "${{ steps.plan.outputs.matrix }}"
+      publish: "${{ steps.request.outputs.publish }}"
     steps:
     - name: Checkout reviewed public orchestration
       uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -32,7 +33,8 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
+      id: request
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -40,7 +42,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -83,7 +85,7 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -91,7 +93,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -174,7 +176,7 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -182,7 +184,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -291,7 +293,7 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -299,7 +301,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -334,7 +336,7 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -342,7 +344,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -386,7 +388,7 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -394,7 +396,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -407,7 +409,7 @@ jobs:
     - name: Verify the complete package set and publish atomically
       env:
         GH_TOKEN: "${{ github.token }}"
-        PUBLISH: "${{ github.event.client_payload.publish }}"
+        PUBLISH: "${{ needs.prepare.outputs.publish }}"
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
         args=()
@@ -428,7 +430,7 @@ jobs:
       contents: write
   readme:
     name: Refresh public download table
-    if: "${{ always() && github.event.client_payload.publish && needs.prepare.result == 'success' && needs.release.result == 'success' }}"
+    if: "${{ always() && needs.prepare.outputs.publish == 'true' && needs.prepare.result == 'success' && needs.release.result == 'success' }}"
     needs:
     - prepare
     - release
@@ -442,7 +444,7 @@ jobs:
         ref: "${{ github.sha }}"
         path: orchestrator
         persist-credentials: false
-    - name: Validate trusted private dispatch before source access
+    - name: Validate reviewed release request before source access
       working-directory: "${{ github.workspace }}"
       run: 'python3 "$GITHUB_WORKSPACE/orchestrator/.github/scripts/validate-request.py"
 
@@ -450,7 +452,7 @@ jobs:
     - name: Checkout owner-reviewed private source without public diagnostics
       working-directory: "${{ github.workspace }}"
       env:
-        SOURCE_SHA: "${{ github.event.client_payload.source_sha }}"
+        SOURCE_SHA: "${{ inputs.source_sha || github.event.client_payload.source_sha }}"
         SOURCE_READ_TOKEN: "${{ secrets.PROTECTED_SOURCE_READ_TOKEN }}"
       run: 'bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/checkout-private-source.sh"
 
@@ -467,6 +469,23 @@ jobs:
     permissions:
       contents: write
 'on':
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Reviewed private application SHA
+        type: string
+        required: true
+        default: 7ab1b301654013bcaf8a1569b86be4c0ddaf6ae7
+      version:
+        description: Approved patch version
+        type: string
+        required: true
+        default: 0.8.1
+      publish:
+        description: Publish after all public validation/runtime gates pass
+        type: boolean
+        required: true
+        default: true
   repository_dispatch:
     types:
     - retrohero_release
