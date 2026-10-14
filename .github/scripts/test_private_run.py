@@ -18,7 +18,8 @@ class PrivateRunTests(unittest.TestCase):
             temp.mkdir()
             real_summary = root / "summary"
             env = {**os.environ, "GITHUB_WORKSPACE": str(root), "RUNNER_TEMP": str(temp),
-                   "GITHUB_STEP_SUMMARY": str(real_summary)}
+                   "GITHUB_STEP_SUMMARY": str(real_summary), "APPROVED_SOURCE_SHA": "a" * 40,
+                   "GITHUB_SHA": "b" * 40}
             result = subprocess.run(["bash", str(SCRIPT)], input=command, cwd=source if source_cwd else root,
                                     env=env, text=True, capture_output=True)
             self.assertFalse(real_summary.exists(), "Source summaries must stay private")
@@ -30,6 +31,10 @@ class PrivateRunTests(unittest.TestCase):
         result = self.execute('test "$GITHUB_WORKSPACE" = "$PWD"\ntest -f "$GITHUB_WORKSPACE/scripts/muos/zig-cc.py"\necho "private diagnostic"\necho "private diagnostic" > "$GITHUB_STEP_SUMMARY"\n')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Trusted release step passed", result.stdout)
+
+    def test_miyoo_package_identity_uses_private_sha_instead_of_orchestration_sha(self):
+        result = self.execute('test "$GITHUB_SHA" = "$APPROVED_SOURCE_SHA"\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_private_command_failure_remains_sanitized(self):
         result = self.execute('echo "private diagnostic" >&2\nexit 1\n')
