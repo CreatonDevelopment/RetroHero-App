@@ -191,7 +191,7 @@ jobs:
     - name: Install pinned compiler tools
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
-        if [ '${{ matrix.runtime }}' = glibc ]; then
+        if [ '${{ matrix.runtime }}' = glibc ] || [ '${{ matrix.id }}' = trimui-aarch64 ]; then
           sudo apt-get update -qq
           sudo apt-get install --no-install-recommends -y patchelf=0.18.0-1.1build1
           patchelf --version
@@ -208,6 +208,9 @@ jobs:
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
         bash scripts/ci/build.sh "${{ matrix.backend }}" "${{ matrix.target }}" "${{ matrix.zig_target }}" "${{ matrix.cpu }}" "${{ matrix.runtime }}" "${{ matrix.interpreter }}"
+        if [ '${{ matrix.id }}' = trimui-aarch64 ]; then
+          bash scripts/ci/build-trimui-skia.sh
+        fi
         PRIVATE_COMMAND
     - name: Smoke-test the target executable (native ARM64; emulated ARMv7)
       run: |
@@ -249,7 +252,14 @@ jobs:
       run: |
         bash "$GITHUB_WORKSPACE/orchestrator/.github/scripts/private-run.sh" <<'PRIVATE_COMMAND'
         for package in dist/*.zip; do
-          python3 scripts/ci/smoke-update.py --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --package "$package"
+          previous=()
+          case "$package" in
+            *-trimui-brick-hammer-trimui-stock-aarch64.zip)
+              sudo apt-get install --no-install-recommends -y libsdl2-2.0-0 libfontconfig1
+              previous=(--previous-binary "target/${{ matrix.target }}/release/retrohero")
+              ;;
+          esac
+          python3 scripts/ci/smoke-update.py --backend "${{ matrix.backend }}" --arch "${{ matrix.arch }}" --package "$package" "${previous[@]}"
         done
         PRIVATE_COMMAND
     - name: Verify Hammer NX staging and replacement on an isolated VFAT image
